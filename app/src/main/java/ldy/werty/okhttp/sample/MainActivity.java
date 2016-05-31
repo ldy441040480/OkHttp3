@@ -1,11 +1,6 @@
 package ldy.werty.okhttp.sample;
 
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -63,10 +58,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void getString() {
-        OkRequestParams params = new OkRequestParams();
-        params.put("", "");
-        params.put("", "");
-        OkHttpUtil.get("http://abc.ersan23.com/player/loginpic", params, new OkHttpResStringHandler() {
+        OkHttpUtil.get("http://r.babytree.com/bxuh4mV", new OkHttpResStringHandler() {
             @Override
             public void onSuccess(int code, Headers headers, String response) {
                 Log.i("TAG", "onSuccess response=[" + response + "]");

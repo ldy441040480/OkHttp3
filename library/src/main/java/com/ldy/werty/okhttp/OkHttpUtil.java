@@ -39,7 +39,7 @@ public class OkHttpUtil {
                 .connectTimeout(DEFAULT_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS)
                 .readTimeout(DEFAULT_READ_TIMEOUT, TimeUnit.MILLISECONDS)
                 .writeTimeout(DEFAULT_WRITE_TIMEOUT, TimeUnit.MILLISECONDS)
-                .cookieJar(new PersistentCookieJar(context))
+                .cookieJar(new PersistentCookieJar(context.getApplicationContext()))
                 .build();
     }
 
