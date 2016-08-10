@@ -1,15 +1,13 @@
 package com.ldy.werty.okhttp;
 
-import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.ldy.werty.okhttp.cookie.PersistentCookieJar;
+import com.ldy.werty.okhttp.cookie.JavaNetCookieJar;
 import com.ldy.werty.okhttp.progress.ProgressRequestBody;
 import com.ldy.werty.okhttp.response.OkHttpCallback;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
@@ -33,13 +31,13 @@ public class OkHttpUtil {
     private static OkHttpClient mOkHttpClient = null;
     private static Handler mOkHandler = null;
 
-    public static void init(Context context) {
+    public static void init() {
         mOkHttpClient = new OkHttpClient()
                 .newBuilder()
                 .connectTimeout(DEFAULT_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS)
                 .readTimeout(DEFAULT_READ_TIMEOUT, TimeUnit.MILLISECONDS)
                 .writeTimeout(DEFAULT_WRITE_TIMEOUT, TimeUnit.MILLISECONDS)
-                .cookieJar(new PersistentCookieJar(context.getApplicationContext()))
+                .cookieJar(new JavaNetCookieJar())
                 .build();
     }
 
