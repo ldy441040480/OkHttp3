@@ -3,7 +3,7 @@ package com.ldy.werty.okhttp;
 import android.util.Log;
 
 /**
- * log接口类
+ * Created by ldy on 2015/12/30.
  */
 public final class OkHttpLog {
 

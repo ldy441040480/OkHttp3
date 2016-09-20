@@ -10,6 +10,11 @@ import okhttp3.Cookie;
 import okhttp3.CookieJar;
 import okhttp3.HttpUrl;
 
+/**
+ * 临时Cookie
+ *
+ * Created by ldy on 2015/12/30.
+ */
 public class JavaNetCookieJar implements CookieJar {
 
     private static final String TAG = JavaNetCookieJar.class.getSimpleName();

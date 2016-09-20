@@ -31,12 +31,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onTest(View view) {
-        fileDown();
+//        fileDown();
 //        getBean();
 //        getString();
 //        getBitmap();
 //        getJSONObject();
-//        post();
+        post();
 //        postFile();
     }
 
