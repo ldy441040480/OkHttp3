@@ -27,7 +27,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        OkHttpUtil.init();
     }
 
     public void onTest(View view) {
@@ -35,8 +34,8 @@ public class MainActivity extends AppCompatActivity {
 //        getBean();
 //        getString();
 //        getBitmap();
-//        getJSONObject();
-        post();
+        getJSONObject();
+//        post();
 //        postFile();
     }
 
@@ -75,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
         OkRequestParams params = new OkRequestParams();
         params.put("", "");
         params.put("", "");
-        OkHttpUtil.get("http://abc.ersan23.com/player/loginpic", params, new OkHttpResJsonHandler() {
+        OkHttpUtil.get("https://api.test1.babytree-fpm.com/api/service_index/get_models_6_0", params, new OkHttpResJsonHandler() {
             @Override
             public void onSuccess(int code, Headers headers, JSONObject response) {
                 Log.i("TAG", "onSuccess response=[" + response + "]");
@@ -109,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
         params.put("as", "wer23ew");
         params.put("asd", new File("sdf23sdf"));
 
-        OkHttpUtil.post("url", params, new OkHttpResJsonHandler() {
+        OkHttpUtil.post("https://www.baidu.com/", params, new OkHttpResJsonHandler() {
             @Override
             public void onSuccess(int code, Headers headers, JSONObject response) {
             }

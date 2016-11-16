@@ -6,9 +6,15 @@ import android.os.Looper;
 import com.ldy.werty.okhttp.cookie.JavaNetCookieJar;
 import com.ldy.werty.okhttp.progress.ProgressRequestBody;
 import com.ldy.werty.okhttp.response.OkHttpCallback;
+import com.ldy.werty.okhttp.server.OkHostnameVerifier;
+import com.ldy.werty.okhttp.server.OkX509TrustManager;
 
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -32,13 +38,21 @@ public class OkHttpUtil {
     private static Handler mOkHandler = null;
 
     public static void init() {
-        mOkHttpClient = new OkHttpClient()
-                .newBuilder()
+        OkHttpClient.Builder builder = new OkHttpClient().newBuilder();
+        builder.hostnameVerifier(new OkHostnameVerifier())
                 .connectTimeout(DEFAULT_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS)
                 .readTimeout(DEFAULT_READ_TIMEOUT, TimeUnit.MILLISECONDS)
                 .writeTimeout(DEFAULT_WRITE_TIMEOUT, TimeUnit.MILLISECONDS)
-                .cookieJar(new JavaNetCookieJar())
-                .build();
+                .cookieJar(new JavaNetCookieJar());
+        try {
+            SSLContext sc = SSLContext.getInstance("TLS");
+            OkX509TrustManager trustManager = new OkX509TrustManager();
+            sc.init(null, new TrustManager[] { trustManager }, new SecureRandom());
+            builder.sslSocketFactory(sc.getSocketFactory());
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        mOkHttpClient = builder.build();
     }
 
     public static <T> void get(String url, OkHttpCallback<T> okHttpCallback) {
