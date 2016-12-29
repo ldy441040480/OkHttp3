@@ -38,21 +38,53 @@ public class OkHttpUtil {
     private static Handler mOkHandler = null;
 
     public static void init() {
-        OkHttpClient.Builder builder = new OkHttpClient().newBuilder();
-        builder.hostnameVerifier(new OkHostnameVerifier())
+        getOkHttpClient();
+    }
+
+    public static OkHttpClient getOkHttpClient() {
+        if (mOkHttpClient == null) {
+            try {
+                mOkHttpClient = getHttpsBuilder().build();
+                OkHttpLog.i(TAG, "getOkHttpClient mOkHttpClient[" + mOkHttpClient + "]");
+            } catch (Throwable e) {
+                e.printStackTrace();
+                OkHttpLog.e(TAG, "getOkHttpClient e[" + e + "]");
+                mOkHttpClient = getOkHttpBuilder().build();
+            }
+        }
+        return mOkHttpClient;
+    }
+
+    /**
+     * 获取支持正常 OkHttpClient.Builder
+     * @return
+     */
+    private static OkHttpClient.Builder getOkHttpBuilder() {
+        return new OkHttpClient().newBuilder()
                 .connectTimeout(DEFAULT_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS)
                 .readTimeout(DEFAULT_READ_TIMEOUT, TimeUnit.MILLISECONDS)
                 .writeTimeout(DEFAULT_WRITE_TIMEOUT, TimeUnit.MILLISECONDS)
                 .cookieJar(new JavaNetCookieJar());
+    }
+
+    /**
+     * 获取支持https OkHttpClient.Builder
+     * @return
+     */
+    private static OkHttpClient.Builder getHttpsBuilder() {
+        OkHttpClient.Builder builder = getOkHttpBuilder();
+        builder.hostnameVerifier(new OkHostnameVerifier());
         try {
             SSLContext sc = SSLContext.getInstance("TLS");
             OkX509TrustManager trustManager = new OkX509TrustManager();
-            sc.init(null, new TrustManager[] { trustManager }, new SecureRandom());
+            sc.init(null, new TrustManager[]{trustManager}, new SecureRandom());
             builder.sslSocketFactory(sc.getSocketFactory());
+            OkHttpLog.i(TAG, "createHttpsBuilder builder[" + builder + "]");
         } catch (Throwable e) {
             e.printStackTrace();
+            OkHttpLog.e(TAG, "createHttpsBuilder e[" + e + "]");
         }
-        mOkHttpClient = builder.build();
+        return builder;
     }
 
     public static <T> void get(String url, OkHttpCallback<T> okHttpCallback) {
@@ -77,7 +109,7 @@ public class OkHttpUtil {
             Headers headers = getRequestHeaders(params);
             Request request = getRequest(getFinalUrl(url, params), requestBody, headers, tag);
 
-            call = mOkHttpClient.newCall(request);
+            call = getOkHttpClient().newCall(request);
             call.enqueue(callback);
         } catch (Throwable e) {
             e.printStackTrace();
@@ -107,7 +139,7 @@ public class OkHttpUtil {
             Headers headers = getRequestHeaders(params);
             Request request = getRequest(url, requestBody, headers, tag);
 
-            call = mOkHttpClient.newCall(request);
+            call = getOkHttpClient().newCall(request);
             call.enqueue(callback);
         } catch (Throwable e) {
             e.printStackTrace();
@@ -137,7 +169,7 @@ public class OkHttpUtil {
             Headers headers = getRequestHeaders(params);
             Request request = getRequest(url, requestBody, headers, tag);
 
-            call = mOkHttpClient.newCall(request);
+            call = getOkHttpClient().newCall(request);
             Response response = call.execute();
             if (response != null) {
                 callback.onResponse(call, response);
@@ -152,12 +184,12 @@ public class OkHttpUtil {
 
     public static void cancelTag(Object tag) {
         try {
-            for (Call call : mOkHttpClient.dispatcher().queuedCalls()) {
+            for (Call call : getOkHttpClient().dispatcher().queuedCalls()) {
                 if (tag.equals(call.request().tag())) {
                     call.cancel();
                 }
             }
-            for (Call call : mOkHttpClient.dispatcher().runningCalls()) {
+            for (Call call : getOkHttpClient().dispatcher().runningCalls()) {
                 if (tag.equals(call.request().tag())) {
                     call.cancel();
                 }

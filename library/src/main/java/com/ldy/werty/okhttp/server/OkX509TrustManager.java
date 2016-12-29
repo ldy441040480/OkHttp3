@@ -19,7 +19,7 @@ public class OkX509TrustManager implements X509TrustManager {
     }
 
     @Override
-    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-        return null;
+    public X509Certificate[] getAcceptedIssuers() {
+        return new X509Certificate[]{};
     }
 }
