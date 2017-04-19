@@ -6,15 +6,9 @@ import android.os.Looper;
 import com.ldy.werty.okhttp.cookie.JavaNetCookieJar;
 import com.ldy.werty.okhttp.progress.ProgressRequestBody;
 import com.ldy.werty.okhttp.response.OkHttpCallback;
-import com.ldy.werty.okhttp.server.OkHostnameVerifier;
-import com.ldy.werty.okhttp.server.OkX509TrustManager;
 
 import java.io.IOException;
-import java.security.SecureRandom;
 import java.util.concurrent.TimeUnit;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -38,53 +32,13 @@ public class OkHttpUtil {
     private static Handler mOkHandler = null;
 
     public static void init() {
-        getOkHttpClient();
-    }
-
-    public static OkHttpClient getOkHttpClient() {
-        if (mOkHttpClient == null) {
-            try {
-                mOkHttpClient = getHttpsBuilder().build();
-                OkHttpLog.i(TAG, "getOkHttpClient mOkHttpClient[" + mOkHttpClient + "]");
-            } catch (Throwable e) {
-                e.printStackTrace();
-                OkHttpLog.e(TAG, "getOkHttpClient e[" + e + "]");
-                mOkHttpClient = getOkHttpBuilder().build();
-            }
-        }
-        return mOkHttpClient;
-    }
-
-    /**
-     * 获取支持正常 OkHttpClient.Builder
-     * @return
-     */
-    private static OkHttpClient.Builder getOkHttpBuilder() {
-        return new OkHttpClient().newBuilder()
+        mOkHttpClient = new OkHttpClient()
+                .newBuilder()
                 .connectTimeout(DEFAULT_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS)
                 .readTimeout(DEFAULT_READ_TIMEOUT, TimeUnit.MILLISECONDS)
                 .writeTimeout(DEFAULT_WRITE_TIMEOUT, TimeUnit.MILLISECONDS)
-                .cookieJar(new JavaNetCookieJar());
-    }
-
-    /**
-     * 获取支持https OkHttpClient.Builder
-     * @return
-     */
-    private static OkHttpClient.Builder getHttpsBuilder() {
-        OkHttpClient.Builder builder = getOkHttpBuilder();
-        builder.hostnameVerifier(new OkHostnameVerifier());
-        try {
-            SSLContext sc = SSLContext.getInstance("TLS");
-            OkX509TrustManager trustManager = new OkX509TrustManager();
-            sc.init(null, new TrustManager[]{trustManager}, new SecureRandom());
-            builder.sslSocketFactory(sc.getSocketFactory());
-            OkHttpLog.i(TAG, "createHttpsBuilder builder[" + builder + "]");
-        } catch (Throwable e) {
-            e.printStackTrace();
-            OkHttpLog.e(TAG, "createHttpsBuilder e[" + e + "]");
-        }
-        return builder;
+                .cookieJar(new JavaNetCookieJar())
+                .build();
     }
 
     public static <T> void get(String url, OkHttpCallback<T> okHttpCallback) {
@@ -100,20 +54,57 @@ public class OkHttpUtil {
     }
 
     public static <T> void get(String url, OkRequestParams params, Object tag, OkHttpCallback<T> okHttpCallback) {
-        OkHttpLog.d(TAG, getFinalUrl(url, params));
+        url = getFinalUrl(url, params);
+        OkHttpLog.d(TAG, url);
 
         Call call = null;
         Callback callback = getCallBack(okHttpCallback);
         try {
-            RequestBody requestBody = getRequestBody(params);
             Headers headers = getRequestHeaders(params);
-            Request request = getRequest(getFinalUrl(url, params), requestBody, headers, tag);
+            Request request = getRequest(url, null, headers, tag);
 
-            call = getOkHttpClient().newCall(request);
+            call = mOkHttpClient.newCall(request);
             call.enqueue(callback);
         } catch (Throwable e) {
+            OkHttpLog.e(TAG, "get e[" + e + "];url=[" + url + "]");
             e.printStackTrace();
             callback.onFailure(call, new IOException("get", e));
+        }
+    }
+
+    public static <T> void syncGet(String url, OkHttpCallback<T> okHttpCallback) {
+        syncGet(url, null, okHttpCallback);
+    }
+
+    public static <T> void syncGet(String url, OkRequestParams params, OkHttpCallback<T> okHttpCallback) {
+        syncGet(url, params, null, okHttpCallback);
+    }
+
+    public static <T> void syncGet(String url, Object tag, OkHttpCallback<T> okHttpCallback) {
+        syncGet(url, null, tag, okHttpCallback);
+    }
+
+    public static <T> void syncGet(String url, OkRequestParams params, Object tag, OkHttpCallback<T> okHttpCallback) {
+        url = getFinalUrl(url, params);
+        OkHttpLog.d(TAG, url);
+
+        Call call = null;
+        Callback callback = getCallBack(okHttpCallback);
+        try {
+            Headers headers = getRequestHeaders(params);
+            Request request = getRequest(url, null, headers, tag);
+
+            call = mOkHttpClient.newCall(request);
+            Response response = call.execute();
+            if (response != null) {
+                callback.onResponse(call, response);
+            } else {
+                callback.onFailure(call, new IOException("syncGet: response == null"));
+            }
+        } catch (Throwable e) {
+            OkHttpLog.e(TAG, "syncGet e[" + e + "];url=[" + url + "]");
+            e.printStackTrace();
+            callback.onFailure(call, new IOException("syncGet", e));
         }
     }
 
@@ -129,8 +120,19 @@ public class OkHttpUtil {
         post(url, params, tag, false, okHttpCallback);
     }
 
+    /**
+     * post请求
+     *
+     * @param url           请求连接
+     * @param params        请求参数
+     * @param tag           标记
+     * @param isProgress    是否显示上传进度
+     * @param okHttpCallback 上传回调
+     * @param <T>
+     */
     public static <T> void post(String url, OkRequestParams params, Object tag, boolean isProgress, OkHttpCallback<T> okHttpCallback) {
-        OkHttpLog.d(TAG, getFinalUrl(url, params));
+        url = getFinalUrl(url, params);
+        OkHttpLog.d(TAG, url);
 
         Call call = null;
         Callback callback = getCallBack(okHttpCallback);
@@ -139,9 +141,10 @@ public class OkHttpUtil {
             Headers headers = getRequestHeaders(params);
             Request request = getRequest(url, requestBody, headers, tag);
 
-            call = getOkHttpClient().newCall(request);
+            call = mOkHttpClient.newCall(request);
             call.enqueue(callback);
         } catch (Throwable e) {
+            OkHttpLog.e(TAG, "post e[" + e + "];url=[" + url + "]");
             e.printStackTrace();
             callback.onFailure(call, new IOException("post", e));
         }
@@ -160,7 +163,8 @@ public class OkHttpUtil {
     }
 
     public static <T> void syncPost(String url, OkRequestParams params, Object tag, boolean isProgress, OkHttpCallback<T> okHttpCallback) {
-        OkHttpLog.d(TAG, getFinalUrl(url, params));
+        url = getFinalUrl(url, params);
+        OkHttpLog.d(TAG, url);
 
         Call call = null;
         Callback callback = getCallBack(okHttpCallback);
@@ -169,7 +173,7 @@ public class OkHttpUtil {
             Headers headers = getRequestHeaders(params);
             Request request = getRequest(url, requestBody, headers, tag);
 
-            call = getOkHttpClient().newCall(request);
+            call = mOkHttpClient.newCall(request);
             Response response = call.execute();
             if (response != null) {
                 callback.onResponse(call, response);
@@ -177,25 +181,22 @@ public class OkHttpUtil {
                 callback.onFailure(call, new IOException("syncPost: response == null"));
             }
         } catch (Throwable e) {
+            OkHttpLog.e(TAG, "syncPost e[" + e + "];url=[" + url + "]");
             e.printStackTrace();
             callback.onFailure(call, new IOException("syncPost", e));
         }
     }
 
     public static void cancelTag(Object tag) {
-        try {
-            for (Call call : getOkHttpClient().dispatcher().queuedCalls()) {
-                if (tag.equals(call.request().tag())) {
-                    call.cancel();
-                }
+        for (Call call : mOkHttpClient.dispatcher().queuedCalls()) {
+            if (tag.equals(call.request().tag())) {
+                call.cancel();
             }
-            for (Call call : getOkHttpClient().dispatcher().runningCalls()) {
-                if (tag.equals(call.request().tag())) {
-                    call.cancel();
-                }
+        }
+        for (Call call : mOkHttpClient.dispatcher().runningCalls()) {
+            if (tag.equals(call.request().tag())) {
+                call.cancel();
             }
-        } catch (Throwable e) {
-            e.printStackTrace();
         }
     }
 

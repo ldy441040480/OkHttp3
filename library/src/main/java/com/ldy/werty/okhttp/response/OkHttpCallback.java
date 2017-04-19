@@ -2,7 +2,9 @@ package com.ldy.werty.okhttp.response;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.Nullable;
 
+import com.ldy.werty.okhttp.OkHttpLog;
 import com.ldy.werty.okhttp.progress.ProgressListener;
 
 import org.json.JSONTokener;
@@ -21,58 +23,82 @@ import okhttp3.ResponseBody;
  * Created by lidongyang on 2016/5/3.
  */
 public abstract class OkHttpCallback<T> implements Callback, ProgressListener {
+
+    private static final String TAG = OkHttpCallback.class.getSimpleName();
     /** 网络错误 **/
     public static final int RESPONSE_ERROR_NET = 1;
     /** 服务器错误 **/
     public static final int RESPONSE_ERROR_SERVER = 2;
     /** 连接超时 **/
     public static final int RESPONSE_ERROR_TIMEOUT = 3;
+    /** 取消请求 **/
+    public static final int RESPONSE_CANCELED = 4;
 
     protected Handler mOkHandler = null;
 
-    public abstract void onSuccess(int code, Headers headers, T response);
+    public abstract void onSuccess(final Call call, int code, Headers headers, T response);
 
-    public abstract void onFailure(int code, Headers headers, int error, Throwable t);
+    public abstract void onFailure(final Call call, int code, Headers headers, int error, Throwable t);
 
     public void onProgress(long curSize, long totalSize, float progress, boolean done) {}
 
     protected abstract T parseResponse(Response response) throws Throwable;
 
-    protected final void onSuccess(Response response) throws Throwable {
+    protected final void onSuccess(final Call call, Response response) throws Throwable {
         T responseObject = parseResponse(response);
         if (responseObject != null) {
-            onSuccessRequest(response.code(), response.headers(), responseObject);
+            onSuccessRequest(call, response, response.code(), response.headers(), responseObject);
         } else {
-            onFailureRequest(response.code(), response.headers(), RESPONSE_ERROR_SERVER, new Throwable("responseObject == null"));
+            onFailureRequest(call, response, response.code(), response.headers(), RESPONSE_ERROR_SERVER, new Throwable("responseObject == null"));
         }
     }
 
-    protected void onSuccessRequest(final int code, final Headers headers, final T response) {
-        getOkHandler().post(new Runnable() {
-            @Override
-            public void run() {
-                onSuccess(code, headers, response);
-            }
-        });
+    protected boolean isPostMainThread() {
+        return true;
     }
 
-    protected void onFailureRequest(final int code, final Headers headers, final int error, final Throwable t) {
-        getOkHandler().post(new Runnable() {
-            @Override
-            public void run() {
-                onFailure(code, headers, code == 504 ? RESPONSE_ERROR_TIMEOUT : error, t);
-            }
-        });
+    protected void onSuccessRequest(final Call call, @Nullable final Response res, final int code, final Headers headers, final T response) {
+        if (isPostMainThread()) {
+            getOkHandler().post(new Runnable() {
+                @Override
+                public void run() {
+                    onSuccess(call, code, headers, response);
+                    close(res);
+                }
+            });
+        } else {
+            onSuccess(call, code, headers, response);
+            close(res);
+        }
+    }
+
+    protected void onFailureRequest(@Nullable final Call call, @Nullable final Response res, final int code, final Headers headers, final int error, final Throwable t) {
+        if (isPostMainThread()) {
+                getOkHandler().post(new Runnable() {
+                @Override
+                public void run() {
+                    onFailure(call, code, headers, code == 504 ? RESPONSE_ERROR_TIMEOUT : error, t);
+                    close(res);
+                }
+            });
+        } else {
+            onFailure(call, code, headers, code == 504 ? RESPONSE_ERROR_TIMEOUT : error, t);
+            close(res);
+        }
     }
 
     @Override
     public void update(final long bytes, final long contentLength, final boolean done) {
-        getOkHandler().post(new Runnable() {
-            @Override
-            public void run() {
-                onProgress(bytes, contentLength, bytes * 1.0f / contentLength, done);
-            }
-        });
+        if (isPostMainThread()) {
+            getOkHandler().post(new Runnable() {
+                @Override
+                public void run() {
+                    onProgress(bytes, contentLength, bytes * 1.0f / contentLength, done);
+                }
+            });
+        } else {
+            onProgress(bytes, contentLength, bytes * 1.0f / contentLength, done);
+        }
     }
 
     @Override
@@ -80,31 +106,42 @@ public abstract class OkHttpCallback<T> implements Callback, ProgressListener {
         if (response != null) {
             try {
                 if (response.isSuccessful()) {
-                    onSuccess(response);
+                    onSuccess(call, response);
                 } else {
-                    onFailureRequest(response.code(), response.headers(), RESPONSE_ERROR_NET, new Throwable("!response.isSuccessful()"));
+                    onFailureRequest(call, response, response.code(), response.headers(), RESPONSE_ERROR_NET, new Throwable("!response.isSuccessful()"));
                 }
-                close(response.body());
             } catch (Throwable e) {
-                onFailureRequest(response.code(), response.headers(), RESPONSE_ERROR_NET, e);
-                close(response.body());
+                OkHttpLog.e(TAG, "onResponse e[" + e + "]");
+                onFailureRequest(call, response, response.code(), response.headers(), RESPONSE_ERROR_NET, e);
             }
         } else {
-            onFailureRequest(0, null, RESPONSE_ERROR_NET, new Throwable("response == null"));
+            onFailureRequest(call, null, 0, null, RESPONSE_ERROR_NET, new Throwable("response == null"));
         }
     }
 
     @Override
     public final void onFailure(Call call, IOException e) {
-        onFailureRequest(0, null, RESPONSE_ERROR_NET, e);
+        OkHttpLog.e(TAG, "onFailure e[" + e + "]");
+        if (call != null && call.isCanceled()) {
+            onFailureRequest(call, null, 0, null, RESPONSE_CANCELED, e);
+        } else {
+            onFailureRequest(call, null, 0, null, RESPONSE_ERROR_NET, e);
+        }
     }
 
-    protected final void close(ResponseBody body) {
-        if (body == null) return;
+    protected final void close(Response response) {
+        if (response == null)
+            return;
+
+        ResponseBody body = response.body();
+        if (body == null)
+            return;
+
         try {
             body.close();
         } catch (Throwable t) {
             t.printStackTrace();
+            OkHttpLog.e(TAG, "close e[" + t + "]");
         }
     }
 
