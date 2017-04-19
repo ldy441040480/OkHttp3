@@ -11,6 +11,7 @@ import okhttp3.Headers;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
+import okio.ByteString;
 
 /**
  * Created by ldy on 2015/12/30.
@@ -20,10 +21,20 @@ public class OkRequestParams {
     public final static String APPLICATION_OCTET_STREAM =
             "application/octet-stream";
 
+    public static final MediaType MEDIA_TYPE_MARKDOWN =
+            MediaType.parse("text/x-markdown; charset=utf-8");
+
+    public static final MediaType MEDIA_TYPE_PLAIN =
+            MediaType.parse("text/plain; charset=utf-8");
+
+    public static final MediaType JSON =
+            MediaType.parse("application/json; charset=utf-8");
+
     protected final ConcurrentHashMap<String, String> mUrlParams = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<String, FileWrapper> mFileParams = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<String, File[]> mFileArrays = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<String, String> mHeaderMap = new ConcurrentHashMap<>();
+    protected RequestBody mRequestBody;
 
     public OkRequestParams() {
         this(null);
@@ -173,6 +184,9 @@ public class OkRequestParams {
     }
 
     public RequestBody getRequestBody() {
+        if (mRequestBody != null) {
+            return mRequestBody;
+        }
         try {
             if (mFileParams.size() > 0 || mFileArrays.size() > 0) {
                 return createMultipartBuilderBody();
@@ -183,6 +197,21 @@ public class OkRequestParams {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public RequestBody createRequestBody(MediaType contentType, String content) {
+        mRequestBody = RequestBody.create(contentType, content);
+        return mRequestBody;
+    }
+
+    public RequestBody createRequestBody(MediaType contentType, ByteString content) {
+        mRequestBody = RequestBody.create(contentType, content);
+        return mRequestBody;
+    }
+
+    public RequestBody createRequestBody(MediaType contentType, byte[] content) {
+        mRequestBody = RequestBody.create(contentType, content);
+        return mRequestBody;
     }
 
     private RequestBody createMultipartBuilderBody() throws Throwable {

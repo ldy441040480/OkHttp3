@@ -19,6 +19,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 
+import okhttp3.Call;
 import okhttp3.Headers;
 
 public class MainActivity extends AppCompatActivity {
@@ -30,11 +31,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onTest(View view) {
+
+        OkRequestParams requestParams = new OkRequestParams();
+        requestParams.createRequestBody(OkRequestParams.MEDIA_TYPE_PLAIN, "看了解决空间空间");
+
+        OkHttpUtil.post("http://abc.ersan23.com/player/loginpic", requestParams, new OkHttpResStringHandler() {
+
+            @Override
+            public void onSuccess(Call call, int code, Headers headers, String response) {
+                Log.i("TAGTAG", "onSuccess call=[" + call + "];code=[" + call + "];headers=[" + headers + "];response=[" + response + "]");
+            }
+
+            @Override
+            public void onFailure(Call call, int code, Headers headers, int error, Throwable t) {
+                Log.i("TAGTAG", "onFailure call=[" + call + "];code=[" + call + "];headers=[" + headers + "];error=[" + error + "];t=[" + t + "]");
+            }
+        });
+
+
 //        fileDown();
 //        getBean();
 //        getString();
 //        getBitmap();
-        getJSONObject();
+//        getJSONObject();
 //        post();
 //        postFile();
     }
@@ -45,27 +64,28 @@ public class MainActivity extends AppCompatActivity {
         params.put("", "");
         OkHttpUtil.get("http://abc.ersan23.com/player/loginpic", params, new OkHttpResBeanHandler<TestBean>() {
             @Override
-            public void onSuccess(int code, Headers headers, TestBean response) {
-                Log.i("TAG", "onSuccess response=[" + response + "]");
+            public void onSuccess(Call call, int code, Headers headers, TestBean response) {
+
             }
 
             @Override
-            public void onFailure(int code, Headers headers, int error, Throwable t) {
-                Log.i("TAG", "onFailure t[" + t + "]");
+            public void onFailure(Call call, int code, Headers headers, int error, Throwable t) {
+
             }
         });
     }
 
     public void getString() {
         OkHttpUtil.get("http://r.babytree.com/bxuh4mV", new OkHttpResStringHandler() {
+
             @Override
-            public void onSuccess(int code, Headers headers, String response) {
-                Log.i("TAG", "onSuccess response=[" + response + "]");
+            public void onSuccess(Call call, int code, Headers headers, String response) {
+
             }
 
             @Override
-            public void onFailure(int code, Headers headers, int error, Throwable t) {
-                Log.i("TAG", "onFailure t[" + t + "]");
+            public void onFailure(Call call, int code, Headers headers, int error, Throwable t) {
+
             }
         });
     }
@@ -75,27 +95,30 @@ public class MainActivity extends AppCompatActivity {
         params.put("", "");
         params.put("", "");
         OkHttpUtil.get("https://api.test1.babytree-fpm.com/api/service_index/get_models_6_0", params, new OkHttpResJsonHandler() {
+
             @Override
-            public void onSuccess(int code, Headers headers, JSONObject response) {
-                Log.i("TAG", "onSuccess response=[" + response + "]");
+            public void onSuccess(Call call, int code, Headers headers, JSONObject response) {
+
             }
 
             @Override
-            public void onFailure(int code, Headers headers, int error, Throwable t) {
-                Log.i("TAG", "onFailure t[" + t + "]");
+            public void onFailure(Call call, int code, Headers headers, int error, Throwable t) {
+
             }
         });
     }
 
     public void getBitmap() {
         OkHttpUtil.get("http://images.csdn.net/20150817/1.jpg", new OkHttpResBitmapHandler() {
+
             @Override
-            public void onSuccess(int code, Headers headers, Bitmap response) {
-                Log.i("TAG", "onSuccess response=[" + response + "]");
+            public void onSuccess(Call call, int code, Headers headers, Bitmap response) {
+
             }
 
             @Override
-            public void onFailure(int code, Headers headers, int error, Throwable t) {
+            public void onFailure(Call call, int code, Headers headers, int error, Throwable t) {
+
             }
         });
     }
@@ -109,13 +132,15 @@ public class MainActivity extends AppCompatActivity {
         params.put("asd", new File("sdf23sdf"));
 
         OkHttpUtil.post("https://www.baidu.com/", params, new OkHttpResJsonHandler() {
+
             @Override
-            public void onSuccess(int code, Headers headers, JSONObject response) {
+            public void onSuccess(Call call, int code, Headers headers, JSONObject response) {
 
             }
 
             @Override
-            public void onFailure(int code, Headers headers, int error, Throwable t) {
+            public void onFailure(Call call, int code, Headers headers, int error, Throwable t) {
+
             }
         });
     }
@@ -127,12 +152,15 @@ public class MainActivity extends AppCompatActivity {
         params.put("22", new File("sdfsdf"));
 
         OkHttpUtil.post("url", params, this, true, new OkHttpResJsonHandler() {
+
             @Override
-            public void onSuccess(int code, Headers headers, JSONObject response) {
+            public void onSuccess(Call call, int code, Headers headers, JSONObject response) {
+
             }
 
             @Override
-            public void onFailure(int code, Headers headers, int error, Throwable t) {
+            public void onFailure(Call call, int code, Headers headers, int error, Throwable t) {
+
             }
 
             @Override
@@ -150,18 +178,18 @@ public class MainActivity extends AppCompatActivity {
         OkHttpUtil.get(url, "fileDown", new OkHttpResFileHandler(dirPath, fileName) {
 
             @Override
-            public void onSuccess(int code, Headers headers, File response) {
-                Log.i("TAG", "onSuccess response=[" + response + "]");
+            public void onSuccess(Call call, int code, Headers headers, File response) {
+
             }
 
             @Override
-            public void onFailure(int code, Headers headers, int error, Throwable t) {
-                Log.i("TAG", "onFailure t[" + t + "]");
+            public void onFailure(Call call, int code, Headers headers, int error, Throwable t) {
+
             }
 
             @Override
             public void onProgress(long curSize, long totalSize, float progress, boolean done) {
-                String str = "curSize=" + curSize + ";\ntotalSize=" + totalSize + ";\nprogress=" + progress + ";\ndone=" +done;
+                String str = "curSize=" + curSize + ";\ntotalSize=" + totalSize + ";\nprogress=" + progress + ";\ndone=" + done;
                 Log.i("TAG", "onProgress t[" + str + "]");
             }
         });
