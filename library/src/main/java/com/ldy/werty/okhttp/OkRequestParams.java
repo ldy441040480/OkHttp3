@@ -35,7 +35,6 @@ public class OkRequestParams {
                 put(entry.getKey(), entry.getValue());
             }
         }
-        putHeader("charset", "UTF-8");
     }
 
     public void put(String key, int value) {
@@ -43,6 +42,10 @@ public class OkRequestParams {
     }
 
     public void put(String key, float value) {
+        put(key, String.valueOf(value));
+    }
+
+    public void put(String key, long value) {
         put(key, String.valueOf(value));
     }
 
@@ -101,6 +104,10 @@ public class OkRequestParams {
     }
 
     public void putHeader(String key, float value) {
+        putHeader(key, String.valueOf(value));
+    }
+
+    public void putHeader(String key, long value) {
         putHeader(key, String.valueOf(value));
     }
 
