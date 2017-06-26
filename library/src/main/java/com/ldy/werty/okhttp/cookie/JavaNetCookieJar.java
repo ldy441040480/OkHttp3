@@ -80,4 +80,13 @@ public class JavaNetCookieJar implements CookieJar {
         }
         return true;
     }
+
+    public void clearCookie() {
+        try {
+            mCookies.clear();
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
+
 }

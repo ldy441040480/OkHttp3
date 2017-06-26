@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.CookieJar;
 import okhttp3.Headers;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -24,9 +25,9 @@ import okhttp3.Response;
 public class OkHttpUtil {
 
     private static final String TAG = OkHttpUtil.class.getSimpleName();
-    public static final int DEFAULT_CONNECT_TIMEOUT = 30 * 1000;
-    public static final int DEFAULT_WRITE_TIMEOUT = 60 * 1000;
-    public static final int DEFAULT_READ_TIMEOUT = 60 * 1000;
+    private static final int DEFAULT_CONNECT_TIMEOUT = 30 * 1000;
+    private static final int DEFAULT_WRITE_TIMEOUT = 60 * 1000;
+    private static final int DEFAULT_READ_TIMEOUT = 60 * 1000;
 
     private static OkHttpClient mOkHttpClient = null;
     private static Handler mOkHandler = null;
@@ -131,7 +132,6 @@ public class OkHttpUtil {
      * @param <T>
      */
     public static <T> void post(String url, OkRequestParams params, Object tag, boolean isProgress, OkHttpCallback<T> okHttpCallback) {
-        url = getFinalUrl(url, params);
         OkHttpLog.d(TAG, url);
 
         Call call = null;
@@ -163,7 +163,6 @@ public class OkHttpUtil {
     }
 
     public static <T> void syncPost(String url, OkRequestParams params, Object tag, boolean isProgress, OkHttpCallback<T> okHttpCallback) {
-        url = getFinalUrl(url, params);
         OkHttpLog.d(TAG, url);
 
         Call call = null;
@@ -200,7 +199,17 @@ public class OkHttpUtil {
         }
     }
 
-    public static <T> Callback getCallBack(OkHttpCallback<T> okHttpCallBack) {
+    public static void clearCookie() {
+        if (mOkHttpClient != null) {
+            CookieJar cookieJar = mOkHttpClient.cookieJar();
+            if (cookieJar != null && cookieJar instanceof JavaNetCookieJar) {
+                JavaNetCookieJar netCookieJar = (JavaNetCookieJar) cookieJar;
+                netCookieJar.clearCookie();
+            }
+        }
+    }
+
+    private static <T> Callback getCallBack(OkHttpCallback<T> okHttpCallBack) {
         if (okHttpCallBack == null) {
             return OkHttpCallback.DEFAULT_CALLBACK;
         } else {
@@ -209,7 +218,7 @@ public class OkHttpUtil {
         }
     }
 
-    public static Request getRequest(String url, RequestBody requestBody, Headers headers, Object tag) {
+    private static Request getRequest(String url, RequestBody requestBody, Headers headers, Object tag) {
         Request.Builder builder = new Request.Builder();
         if (requestBody != null) {
             builder.post(requestBody);
@@ -224,7 +233,7 @@ public class OkHttpUtil {
         return builder.build();
     }
 
-    public static String getFinalUrl(String url, OkRequestParams params) {
+    private static String getFinalUrl(String url, OkRequestParams params) {
         if (params != null) {
             String paramString = params.getParamString().trim();
             if (!paramString.equals("") && !paramString.equals("?")) {
@@ -239,12 +248,8 @@ public class OkHttpUtil {
         return params == null ? null : params.getRequestHeaders();
     }
 
-    private static RequestBody getRequestBody(OkRequestParams params) {
-        return params == null ? null : params.getRequestBody();
-    }
-
     private static <T> RequestBody getRequestBody(OkRequestParams params, boolean isProgress, OkHttpCallback<T> okHttpCallback) {
-        RequestBody requestBody = getRequestBody(params);
+        RequestBody requestBody = (params != null) ? params.getRequestBody() : null;
         if (requestBody != null && isProgress && okHttpCallback != null) {
             requestBody = new ProgressRequestBody(requestBody, okHttpCallback);
         }
@@ -257,4 +262,5 @@ public class OkHttpUtil {
         }
         return mOkHandler;
     }
+
 }

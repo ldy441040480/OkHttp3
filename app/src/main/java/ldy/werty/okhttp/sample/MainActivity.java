@@ -32,21 +32,21 @@ public class MainActivity extends AppCompatActivity {
 
     public void onTest(View view) {
 
-        OkRequestParams requestParams = new OkRequestParams();
-        requestParams.createRequestBody(OkRequestParams.MEDIA_TYPE_PLAIN, "看了解决空间空间");
-
-        OkHttpUtil.post("http://abc.ersan23.com/player/loginpic", requestParams, new OkHttpResStringHandler() {
-
-            @Override
-            public void onSuccess(Call call, int code, Headers headers, String response) {
-                Log.i("TAGTAG", "onSuccess call=[" + call + "];code=[" + call + "];headers=[" + headers + "];response=[" + response + "]");
-            }
-
-            @Override
-            public void onFailure(Call call, int code, Headers headers, int error, Throwable t) {
-                Log.i("TAGTAG", "onFailure call=[" + call + "];code=[" + call + "];headers=[" + headers + "];error=[" + error + "];t=[" + t + "]");
-            }
-        });
+//        OkRequestParams requestParams = new OkRequestParams();
+//        requestParams.createRequestBody(OkRequestParams.MEDIA_TYPE_PLAIN, "看了解决空间空间");
+//
+//        OkHttpUtil.post("http://abc.ersan23.com/player/loginpic", requestParams, new OkHttpResStringHandler() {
+//
+//            @Override
+//            public void onSuccess(Call call, int code, Headers headers, String response) {
+//                Log.i("TAGTAG", "onSuccess call=[" + call + "];code=[" + call + "];headers=[" + headers + "];response=[" + response + "]");
+//            }
+//
+//            @Override
+//            public void onFailure(Call call, int code, Headers headers, int error, Throwable t) {
+//                Log.i("TAGTAG", "onFailure call=[" + call + "];code=[" + call + "];headers=[" + headers + "];error=[" + error + "];t=[" + t + "]");
+//            }
+//        });
 
 
 //        fileDown();
@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
 //        getString();
 //        getBitmap();
 //        getJSONObject();
-//        post();
+        post();
 //        postFile();
     }
 
