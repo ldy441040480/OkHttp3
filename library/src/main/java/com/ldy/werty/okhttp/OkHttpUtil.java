@@ -33,13 +33,13 @@ public class OkHttpUtil {
     private static Handler mOkHandler = null;
 
     public static void init() {
-        mOkHttpClient = new OkHttpClient()
-                .newBuilder()
-                .connectTimeout(DEFAULT_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS)
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        builder.connectTimeout(DEFAULT_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS)
                 .readTimeout(DEFAULT_READ_TIMEOUT, TimeUnit.MILLISECONDS)
                 .writeTimeout(DEFAULT_WRITE_TIMEOUT, TimeUnit.MILLISECONDS)
-                .cookieJar(new JavaNetCookieJar())
-                .build();
+                .cookieJar(new JavaNetCookieJar());
+        SSLHelper.configSSL(builder);
+        mOkHttpClient = builder.build();
     }
 
     public static <T> void get(String url, OkHttpCallback<T> okHttpCallback) {

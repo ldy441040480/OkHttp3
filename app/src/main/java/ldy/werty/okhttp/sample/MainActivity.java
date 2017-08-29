@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
 //        OkRequestParams requestParams = new OkRequestParams();
 //        requestParams.createRequestBody(OkRequestParams.MEDIA_TYPE_PLAIN, "看了解决空间空间");
-//
+////
 //        OkHttpUtil.post("http://abc.ersan23.com/player/loginpic", requestParams, new OkHttpResStringHandler() {
 //
 //            @Override
@@ -49,12 +49,12 @@ public class MainActivity extends AppCompatActivity {
 //        });
 
 
-//        fileDown();
+        fileDown();
 //        getBean();
 //        getString();
 //        getBitmap();
 //        getJSONObject();
-        post();
+//        post();
 //        postFile();
     }
 
