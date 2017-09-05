@@ -13,4 +13,5 @@ public abstract class OkHttpResBeanHandler<T> extends OkHttpCallback<T> {
     protected T parseResponse(Response response) throws Throwable {
         return JSON.parseObject(responseToString(response), getGenericType());
     }
+
 }

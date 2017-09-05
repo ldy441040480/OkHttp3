@@ -10,6 +10,8 @@ import java.io.InputStream;
 import okhttp3.Response;
 
 /**
+ * callback in async thread
+ *
  * Created by lidongyang on 2016/5/17.
  */
 public abstract class OkHttpResFileHandler extends OkHttpCallback<File> {
@@ -22,6 +24,11 @@ public abstract class OkHttpResFileHandler extends OkHttpCallback<File> {
         this.dirPath = dirPath;
         this.fileName = fileName;
         this.lastRefreshTime = System.currentTimeMillis();
+    }
+
+    @Override
+    protected final boolean isPostMainThread() {
+        return false;
     }
 
     @Override

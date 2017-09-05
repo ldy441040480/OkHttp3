@@ -63,12 +63,10 @@ public abstract class OkHttpCallback<T> implements Callback, ProgressListener {
                 @Override
                 public void run() {
                     onSuccess(call, code, headers, response);
-                    close(res);
                 }
             });
         } else {
             onSuccess(call, code, headers, response);
-            close(res);
         }
     }
 
@@ -78,12 +76,10 @@ public abstract class OkHttpCallback<T> implements Callback, ProgressListener {
                 @Override
                 public void run() {
                     onFailure(call, code, headers, code == 504 ? RESPONSE_ERROR_TIMEOUT : error, t);
-                    close(res);
                 }
             });
         } else {
             onFailure(call, code, headers, code == 504 ? RESPONSE_ERROR_TIMEOUT : error, t);
-            close(res);
         }
     }
 
@@ -113,6 +109,8 @@ public abstract class OkHttpCallback<T> implements Callback, ProgressListener {
             } catch (Throwable e) {
                 OkHttpLog.e(TAG, "onResponse e[" + e + "]");
                 onFailureRequest(call, response, response.code(), response.headers(), RESPONSE_ERROR_NET, e);
+            } finally {
+                close(response);
             }
         } else {
             onFailureRequest(call, null, 0, null, RESPONSE_ERROR_NET, new Throwable("response == null"));

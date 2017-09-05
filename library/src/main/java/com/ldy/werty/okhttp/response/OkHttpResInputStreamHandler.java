@@ -10,7 +10,13 @@ import okhttp3.Response;
 public abstract class OkHttpResInputStreamHandler extends OkHttpCallback<InputStream> {
 
     @Override
+    protected final boolean isPostMainThread() {
+        return false;
+    }
+
+    @Override
     protected InputStream parseResponse(Response response) throws Throwable {
         return response.body().byteStream();
     }
+
 }
